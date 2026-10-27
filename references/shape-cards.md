@@ -13,6 +13,7 @@ The parser accepts either the Chinese or the English heading. A section is match
 | `# <title>` | | yes | One sentence naming the shape |
 | `## 問題形狀` | `## Problem shape` | yes | The roles: who acts, on what, wanting what, blocked by what |
 | `## 核心張力` | `## Core tension` | yes | The two pulls that make it recur |
+| `## 崩潰／放棄原因` | `## Breakdown` | optional | Vaccine section: what was tried before, where it stalled, and what to check before repeating |
 | `## 最像但不同的線` | `## Near misses` | yes | Shapes that look alike but are not this one, and how to tell them apart |
 | `## 觸發條件` | `## Triggers` | yes | When it tends to show up |
 | `## 化身清單` | `## Instances` | yes, as examples | Table of confirmed instances (below); also the probe's positives |

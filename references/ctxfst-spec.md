@@ -39,9 +39,9 @@ What works is supervision: a card with examples, plus the reviewer's rejections.
 ## 2. Objects
 
 ### Unit
-A unit is a note file, or one chunk of it when the note has `%% chunk-start %%` markers ([chunk-syntax.md](chunk-syntax.md)). Unit IDs are relative paths without `.md`, plus `#chunk-id` for a chunk. Plain Markdown is a valid input. The unit text starts with the note title (`# title`), because some notes are a title and nothing else. Notes with less than 20 characters of body (`link --min-body`), such as link-only clippings, are never proposed as candidates, but they can still be confirmed instances.
+A unit is a note file, or one problem line of it when the note has `%% line-start %%` markers. Unit IDs are relative paths without `.md`, plus `#line-id` for a marked line. Plain Markdown is a valid input. The unit text starts with the note title (`# title`), because some notes are a title and nothing else. Notes with less than 20 characters of body (`link --min-body`), such as link-only clippings, are never proposed as candidates, but they can still be confirmed instances.
 
-Prefer whole notes or sections over small chunks. A shape needs the whole story: who wanted what, what blocked it, and what happened.
+Prefer whole notes or self-contained problem lines. A shape needs the whole story: who wanted what, what blocked it, and what happened.
 
 ### Shape card
 A hand-written Markdown file ([shape-cards.md](shape-cards.md)) with:
@@ -87,8 +87,6 @@ The judge is a filter, not an edge writer. Its accept precision was 53–58%.
 | `links.json` | `[{card, unit, verdict, mismatch, probe, known}]` |
 | `review.md` | checklist per card (`<!-- card: id -->` marks each section) |
 | `cache/` | embedding and judge caches, keyed by content hash |
-
-`scripts/export_to_lancedb.py` still exports chunk records (`id`, `context`, `content`, `tags`, optional temporal fields) for vector databases; see [`schema.json`](../schema.json).
 
 ---
 

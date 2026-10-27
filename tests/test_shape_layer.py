@@ -57,7 +57,7 @@ class TestUnits(unittest.TestCase):
             (root / "a").mkdir()
             (root / "a/plain.md").write_text("---\ntitle: x\n---\nhello ![img](x.png) https://e.com", encoding="utf-8")
             (root / "a/split.md").write_text(
-                '%% chunk-start id="w:one" %%\nfirst\n%% chunk-end %%\n%% chunk-start id="w:two" %%\nsecond\n%% chunk-end %%',
+                '%% line-start id="w:one" %%\nfirst\n%% line-end %%\n%% line-start id="w:two" %%\nsecond\n%% line-end %%',
                 encoding="utf-8")
             (root / "private").mkdir()
             (root / "private/secret.md").write_text("pii", encoding="utf-8")

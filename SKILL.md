@@ -1,31 +1,82 @@
 ---
-name: skill-chunk-md
-description: "Link Markdown notes to recurring problem shapes (CtxFST v3). Use when building a knowledge base that should surface 'the same kind of problem I had years ago' instead of 'notes about the same topic': writing shape cards, building the embedding index, ranking notes with a card's probe, judging candidates against a card, reviewing and feeding back confirmations and rejections, evaluating against a gold set, or adding %% chunk-start %% / %% chunk-end %% markers to split long notes."
+name: skill-line-coach
+description: "Coach and structure Markdown notes, diaries, and problem lines (CtxFST). Use when writing or reviewing diary entries and notes to improve their structure and future retrievability with the Four-Slot Tension Coach (誰在做 / 動作＋對象 / 被什麼擋 / 戰報), separating mixed passages into self-contained problem lines (%% line-start %% / %% line-end %%), or linking notes to recurring problem shape cards."
 ---
 
-# Skill Chunk MD
+# Skill Line Coach (CtxFST)
 
-CtxFST v3 links notes to **shape cards**. A shape card is a hand-written description of a problem that keeps coming back with different objects and tools. The only edge is *note → card*, and a person confirms every edge.
+`skill-line-coach` helps the user **write and structure Markdown notes and diary entries** so each problem line (`問題線`) is clear, satisfying to read, and naturally retrievable in the future.
 
-Each card works as a probe in embedding space: the mean of its confirmed notes minus half the mean of its rejected notes. Every review makes the probe sharper.
+It operates at three levels:
 
-There are no entities, no extracted structure, and no note↔note edges. Methods that try to describe notes in a comparable form (entities, four-slot structure, structure summaries) find the same *topic*, not the same *problem*. Supervision from the reviewer is what worked. The evidence is in [references/ctxfst-spec.md](references/ctxfst-spec.md).
+1. **Write-Time Four-Slot Coach (張力句四槽教練)**: When the user is writing a diary entry or note, help them leave the complete shape of each problem line in the text itself—**who acted, what they did, what concrete obstacle blocked them, and whether that obstacle receded afterward**. Lines written with all four slots are both clearer today and directly retrievable by plain embeddings later.
+2. **Line Separation & Standalone Check (分線與獨立可檢索檢查)**: Identify when a passage mixes multiple distinct problem lines, separate them, ensure each line stands on its own without ambiguous pronouns, and optionally mark boundaries with `%% line-start id="..." %%` / `%% line-end %%`.
+3. **Recurring Problem Shape Cards (主題線形狀卡檢索)**: Link notes across years to hand-written shape cards using embedding probes and human confirmation/rejection feedback (`scripts/shape_layer.py`).
 
 ## When to use which step
 
 | The user wants to… | Do |
 |---|---|
-| Find notes with the same problem shape as a known pattern | Check the card, then `build`, `link`, and `review` |
+| Write or improve a diary entry / note (`教練` / `評比` / `改寫` / `比較`) | Run the **Four-Slot Structure Coach** ([references/four-slot-coach.md](references/four-slot-coach.md)) |
+| Separate a multi-topic note into self-contained problem lines | Separate problem lines and check standalone readability |
+| Find notes with the same problem shape as a known pattern | Check the card, then `build`, `link`, and `review` with `scripts/shape_layer.py` |
 | Turn a recurring pattern they noticed into a card | Write a card ([references/shape-cards.md](references/shape-cards.md)) |
-| Find notes similar to one note | `build`, then `similar` (plain embedding similarity, i.e. same topic) |
-| Measure whether a change helped | `link --all`, then `eval` with a gold file |
-| Split a long note into passages | Add chunk markers ([references/chunk-syntax.md](references/chunk-syntax.md)) |
+| Find notes similar to one note | `build`, then `similar` |
 
-## Workflow
+---
+
+## Part 1: Write-Time Four-Slot Coach (張力句四槽教練)
+
+Read [references/four-slot-coach.md](references/four-slot-coach.md) for the full coaching rules and boundaries. When the user shares a draft diary entry, note, or sentence:
+
+### The Four Role Slots (四個角色槽)
+
+1. **誰在做 (Actor)**: Who acts. An omitted subject counts as present only if the context uniquely identifies one actor (state which sentence implies it).
+2. **動作＋對象 (Action + Object)**: What was done, to what object, along this problem line.
+3. **被什麼擋 (Concrete Blocker / Opponent)**: A specific, observable obstacle pointing to an event, note, or moment. Vague labels like "bad state", "not enough time", or "anxious" count as **missing**.
+4. **戰報 (Outcome / State Change)**: After the action, did that same obstacle recede? Victory, failure, partial improvement, stalemate, or ongoing observation all count.
+   - Criterion: **Does it directly answer how the same obstacle changed?** Praise of a tool ("very convenient", "I like it") evaluates the means, not whether the obstacle receded, so it does not count as slot 4.
+
+### Coaching Workflow & Modes
+
+1. **Classify the writing first**:
+   - **Problem-solving (解決問題型)**: Decisions, tools, actions, or retrospectives → apply the four slots.
+   - **Emotional (情緒型)**: Acknowledge the feeling first, then gently ask: *"What did this feeling block you from doing?"*
+   - **Abstract conclusion (抽象結論型)**: Ask: *"Which concrete event did this conclusion grow out of?"*
+   - **Pure observation / lyrical (純觀察／純抒發型)**: Let it pass warmly without slot-by-slot grading.
+2. **Separate multiple problem lines (分線)**:
+   - If a passage contains 2+ distinct problem lines, list them separately instead of merging them.
+   - If there are more than 3 lines, state the total count, list the first 3 in order of appearance, and explicitly note how many remain (never silently drop caregiving, physical health, or emotional lines).
+3. **Choose the interaction mode**:
+   - **Coach (`教練`, default)**: Summarize the structure you see in one sentence, then ask **only one** non-leading probe question (prioritize slot 3 *Blocker* before slot 4 *Outcome*). Do not score or rewrite.
+   - **Evaluate (`評比`)**: Mark each of the four slots as **有 (present)** or **缺 (missing)** per problem line, quoting the user's text as evidence. **Never give a numeric total score (e.g. 3/4).**
+   - **Rewrite (`改寫`)**: Preserve all facts, time markers, qualifiers, and meaning; never invent facts or motives. If 2+ slots are missing and cannot be filled without new facts, state what is missing and ask one coach probe instead of forcing a rewrite.
+   - **Compare (`比較`)**: Compare before/after versions per slot and highlight what structural piece was genuinely added.
+
+---
+
+## Part 2: Line Separation & Future Retrievability (分線與可檢索性)
+
+When structuring a diary or note for future retrieval:
+
+1. **The Standalone Test (獨立可讀檢查)**: Can someone (or future search) understand this problem line without reading surrounding paragraphs? Flag dangling pronouns ("fixed that issue", "used the previous method") and prompt the user to name the specific object.
+2. **Line Markers (optional)**: Long notes that mix several distinct problems can be separated into independent paragraphs/headings, or marked explicitly so `shape_layer.py` indexes each problem line on its own (`path#line-id`):
+
+```markdown
+%% line-start id="work:migration-2014" %%
+…self-contained problem line…
+%% line-end %%
+```
+
+---
+
+## Part 3: Recurring Problem Shape Cards (`scripts/shape_layer.py`)
+
+When linking notes across years to recurring problem shapes ([references/ctxfst-spec.md](references/ctxfst-spec.md), [references/shape-cards.md](references/shape-cards.md)):
 
 ### 1. Configure
 
-Set the `CTXFST_*` variables, or put them in a file and pass it with `--env`:
+Set `CTXFST_*` variables or pass `--env`:
 
 ```
 CTXFST_EMBED_KEY=…                  # Voyage by default; CTXFST_EMBED_URL / _MODEL to change
@@ -34,79 +85,35 @@ CTXFST_LLM_MODEL=…
 CTXFST_LLM_KEY=…
 ```
 
-Note text is sent to these APIs. Ask the user which folders are private, and pass those with `--exclude`.
-
 ### 2. Build the index
 
 ```bash
 python3 scripts/shape_layer.py --env .env build NOTES_DIR --out INDEX --exclude 'private/*'
 ```
 
-This step only computes embeddings, with no LLM. If the notes carry generated blocks (related-note lists, auto summaries, tags added by other tools), pass `--cut-at REGEX` to truncate each note at the first matching line. Generated topic labels leak into the embeddings and inflate results. Results are cached by content hash, so a rebuild only embeds notes that changed.
+Pass `--cut-at REGEX` if notes carry generated footer blocks.
 
 ### 3. Write shape cards
 
-Cards come from the person, not the model. A card needs:
-- **Problem shape**: the roles, not the topic.
-- **Core tension**.
-- **Near misses**: look-alikes that are not this shape, and how to tell them apart.
-- **Triggers**.
-- **Instance table**: confirmed examples with a wikilink each.
-- **Rejected list**: filled in by `review`.
+A card ([references/shape-cards.md](references/shape-cards.md)) is written by the person and includes:
+- **Problem shape (`## 問題形狀`)**: the roles, not the topic.
+- **Core tension (`## 核心張力`)**.
+- **Breakdown / abandonment reasons (`## 崩潰／放棄原因（疫苗欄）`)**: what was tried before, where it stalled, and what to check before repeating the same mistake.
+- **Near misses (`## 最像但不同的線`)**: look-alikes that are not this shape.
+- **Triggers (`## 觸發條件`)**.
+- **Instance table (`## 化身清單`)** and **Rejected list (`## 退回`)**.
 
-Help the user phrase the card, but do not invent instances or motives.
-
-### 4. Link
+### 4. Link & Review
 
 ```bash
 python3 scripts/shape_layer.py --env .env link INDEX --cards CARDS_DIR --top 40
-```
-
-- The card's probe ranks every unit, and the top 40 new ones become candidates.
-- By default an LLM judges each candidate against the card, with instance rows as examples. A unit's own row is hidden from it.
-- `--no-judge` skips the LLM. It costs about 0.03 mean card AUC once a card has rejections, and about 0.09 before.
-- Output goes to `INDEX/review.md` and `INDEX/links.json`.
-
-### 5. Review
-
-The user marks each line in `review.md` with `[x]` (confirm) or `[-]` (reject), then:
-
-```bash
 python3 scripts/shape_layer.py review INDEX --cards CARDS_DIR
 ```
 
-- Confirmed notes are appended to the card's instance table with the description columns empty. Ask the user to fill them in, because those columns are what the judge learns from.
-- Rejected notes go to the card's rejected list.
-- Run `link` again afterwards.
-
-Encourage rejecting. Rejections are the cheapest signal, and the biggest gain measured (mean card AUC 0.744 → 0.834 for the probe alone). The judge's precision is about 55%, so present its verdicts as a reading order, not as conclusions. If one card keeps pulling in wrong notes, suggest splitting it.
-
-## Rules
-
-- Never write note↔note edges, and never use an LLM to judge two notes against each other. Without a card as an anchor, that judge's precision equaled the base rate.
-- Do not extract structure (entities, slots, summaries) to match on. Every such method tested lost to plain text embeddings.
-- Only the person confirms or rejects. The judge's verdicts are candidates.
-
-## Chunk markers (optional)
-
-Long notes that mix several problems can be split:
-
-```markdown
-%% chunk-start id="work:migration-2014" %%
-…passage…
-%% chunk-end %%
-```
-
-- Chunk IDs use the form `category:kebab-topic`.
-- Frontmatter `chunks:` entries (`id`, `context`, `tags`, `created_at`) are optional metadata.
-- `scripts/validate_chunks.py` checks marker syntax.
-- `scripts/export_to_lancedb.py` exports chunk records.
-- `scripts/contextualize_chunks.py` writes `context` fields with Claude.
-- More detail: [references/chunk-syntax.md](references/chunk-syntax.md) and [references/semantic-chunking.md](references/semantic-chunking.md).
+- Mark candidates in `INDEX/review.md` with `[x]` (confirm) or `[-]` (reject), then run `review`.
 
 ## Resources
 
+- `references/four-slot-coach.md`: Four-Slot Tension Coach (`張力句教練`) rules, modes, probes, and safety boundaries
+- `references/shape-cards.md`, `references/ctxfst-spec.md`: shape card format and probe specification
 - `scripts/shape_layer.py`: build, similar, link, review, eval
-- `references/ctxfst-spec.md`: v3 spec, probe, file formats, evidence
-- `references/shape-cards.md`: card format and writing guide
-- `references/chunk-syntax.md`, `references/semantic-chunking.md`: chunk markers

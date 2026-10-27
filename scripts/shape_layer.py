@@ -207,7 +207,7 @@ def embed(texts, cache_path):
 # Units
 # ---------------------------------------------------------------------------
 
-CHUNK_RE = re.compile(r'%%\s*chunk-start\s+id=["\']([^"\']+)["\']\s*%%(.*?)%%\s*chunk-end\s*%%', re.S | re.I)
+CHUNK_RE = re.compile(r'%%\s*(?:line|chunk)-start\s+id=["\']([^"\']+)["\']\s*%%(.*?)%%\s*(?:line|chunk)-end\s*%%', re.S | re.I)
 
 
 def clean(text):
