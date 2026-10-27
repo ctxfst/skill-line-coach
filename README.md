@@ -6,15 +6,22 @@
 
 ---
 
-## Why `skill-line-coach`?
+## Why Four Slots Make Vector Search Work Across Years
 
-When writing daily notes or work logs, people naturally write **who** did **what** ("Switched to tool X today, super convenient"), while leaving out:
-1. **What concrete obstacle triggered the action** (Slot 3: Blocker)
-2. **Whether that obstacle actually receded afterward** (Slot 4: Outcome / Battle Report)
+People often blame embedding models when vector search fails to connect the same recurring problem across a decade:
 
-Months later, half-written notes cannot be retrieved by structure—and even when found, they don't tell you what failed or why.
+- **2013 note**: *"Set up a site wiki engine"*
+- **2014 note**: *"Installed Evernote on my phone, voice notes are super convenient"*
+- **2023 note**: *"Prompting ChatGPT to build a Zettelkasten card bot"*
 
-Instead of trying to extract noisy entity graphs from incomplete notes *after* the fact, `skill-line-coach` coaches you **at write time** so the structure lives in the prose itself.
+Across 15 years of personal notes, plain cosine similarity between notes on this same recurring problem averaged **`0.623`** (barely above the **`0.534`** random baseline)—not because the embedding model is dumb, but because **the invariant half of the problem was never written into the text**:
+
+1. **Un-coached notes only record Slot 2 (the tool or object of the day)**. Tools expire every three years (`Wiki` → `Evernote` → `ChatGPT`), so the embedding model only sees unrelated surface nouns.
+2. **Coaching the Four Slots forces you to write down the part that stays invariant across a decade**: **what concrete phenomenon blocked you (Slot 3: Blocker)** and **how that obstacle changed after your action (Slot 4: Outcome)**.
+3. Modern embedding models (`voyage-3.5`, etc.) are highly sensitive to relational tension (*who tried what, blocked by what, with what result*)—once that skeleton is actually present in the prose. In testing, writing the role relationships directly into the note raised cross-era cosine similarity from **`0.623` to `0.858`** without changing the retrieval algorithm at all.
+4. By contrast, trying to extract four slots or entity graphs *retroactively* from old, half-written notes failed (`0.51`–`0.629` AUC), because nearly half of un-coached notes never recorded the blocker (`46%` missing) or outcome (`39%` missing) in the first place.
+
+**Fixing the note at write time beats fixing the database after the fact.**
 
 ---
 
