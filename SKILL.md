@@ -68,6 +68,22 @@ When structuring a diary or note for future retrieval:
 %% line-end %%
 ```
 
+3. **Keep the shape inside the markers, details after them**: In a note with markers, only the text inside `line-start` / `line-end` is indexed; anything outside is never embedded. Put inside the markers what a shape card needs: the four slots first, then a short account of what happened (the concrete blocker, what was done, how it turned out), quoting only one or two key examples. Move tables, lists, figures, and links after `line-end`, where they stay readable but do not pull the embedding toward the topic.
+   - Aim for about 300–1,500 characters per line. The judge sees only the first 1,200 characters, and `build` embeds only the first 4,000.
+   - Four slot bullets alone (about 150 characters) are too thin: a shape needs the story.
+   - A line that still runs long after moving details out usually mixes several problems. Split it into separate lines, each with its own four slots.
+
+```markdown
+%% line-start id="shopee-sellers:white-label-vs-genuine" %%
+## Line 9: …
+- 誰在做 / 動作＋對象 / 被什麼擋 / 戰報
+What happened: a short account, quoting one or two key examples
+%% line-end %%
+
+### Line 9｜Details (not indexed)
+Tables, lists, figures…
+```
+
 ---
 
 ## Part 3: Recurring Problem Shape Cards (`scripts/shape_layer.py`)

@@ -70,6 +70,18 @@ class TestUnits(unittest.TestCase):
             self.assertEqual(u["a/split#w:two"], "# split\n\nsecond")
             self.assertNotIn("private/secret", u)
 
+    def test_outside_markers_and_over_cap(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "n.md").write_text(
+                'intro\n%% line-start id="w:long" %%\n' + "x" * S.EMBED_CAP + '\n%% line-end %%\n'
+                '### details\ntable\n%% line-start id="w:short" %%\nshort\n%% line-end %%',
+                encoding="utf-8")
+            u = S.read_units(root)
+            self.assertEqual(sorted(u), ["n#w:long", "n#w:short"])
+            self.assertNotIn("table", "".join(u.values()))
+            self.assertEqual(S.over_cap(u), [("n#w:long", len(u["n#w:long"]))])
+
 
 class TestCard(unittest.TestCase):
     def test_sections_and_rows(self):

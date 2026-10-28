@@ -250,6 +250,11 @@ def body_chars(text):
     return len(re.sub(r'\(link\)|\[[^\]]*\]|\s', '', body))
 
 
+def over_cap(units):
+    """Units whose text is cut at EMBED_CAP, longest first: [(unit_id, chars)]."""
+    return sorted(((u, len(t)) for u, t in units.items() if len(t) > EMBED_CAP), key=lambda x: -x[1])
+
+
 # ---------------------------------------------------------------------------
 # build: embeddings only
 # ---------------------------------------------------------------------------
@@ -262,7 +267,10 @@ def cmd_build(args):
     units = read_units(args.notes, paths, args.exclude, args.cut_at)
     ids = sorted(units)
     print(f'{len(ids)} units')
-    text = {u: units[u][:EMBED_CAP] for u in ids}
+    for u, n in over_cap(units):
+        print(f'  ! {u}: {n} chars, only the first {EMBED_CAP} are embedded '
+              '(move details after line-end, or split the line)')
+    text ={u: units[u][:EMBED_CAP] for u in ids}
     vec = embed(list(text.values()), out / 'cache' / 'embeddings.json')
     np.savez_compressed(out / 'vectors.npz', ids=np.array(ids), raw=np.stack([vec[text[u]] for u in ids]))
     jsave(out / 'units.json', {u: {'text': units[u][:TEXT_CAP], 'body_chars': body_chars(units[u])} for u in ids})

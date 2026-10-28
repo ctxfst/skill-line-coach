@@ -41,7 +41,9 @@ What works is supervision: a card with examples, plus the reviewer's rejections.
 ### Unit
 A unit is a note file, or one problem line of it when the note has `%% line-start %%` markers. Unit IDs are relative paths without `.md`, plus `#line-id` for a marked line. Plain Markdown is a valid input. The unit text starts with the note title (`# title`), because some notes are a title and nothing else. Notes with less than 20 characters of body (`link --min-body`), such as link-only clippings, are never proposed as candidates, but they can still be confirmed instances.
 
-Prefer whole notes or self-contained problem lines. A shape needs the whole story: who wanted what, what blocked it, and what happened.
+When a note has markers, only the marked lines are units: text outside every `line-start` / `line-end` pair is not indexed. Unit text is embedded up to 4,000 characters (`EMBED_CAP`) and shown to the judge up to 1,200 (`TEXT_CAP`); `build` warns about units longer than `EMBED_CAP`.
+
+Prefer whole notes or self-contained problem lines. A shape needs the whole story: who wanted what, what blocked it, and what happened. Keep supporting details (tables, lists, figures) after `line-end`, so the line carries the shape and not the topic.
 
 ### Shape card
 A hand-written Markdown file ([shape-cards.md](shape-cards.md)) with:
